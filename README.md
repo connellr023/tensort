@@ -12,3 +12,11 @@ The pretrained model used for this project can be found <a href="https://github.
 Setting up the development environment can be done by following the **README** from the **tch-rs** repository <a href="https://github.com/LaurentMazare/tch-rs">here</a>
 
 When installing *libtorch*, ensure that the version that supports **CUDA** is used.
+
+On Linux, `.bashrc` should contain the following (at least for my setup)
+```
+export LIBTORCH_USE_PYTORCH=1
+export LIBTORCH_BYPASS_VERSION_CHECK=1
+export LIBTORCH=/path/to/libtorch
+export LD_LIBRARY_PATH=/path/to/libtorch:$LD_LIBRARY_PATH
+```
