@@ -5,14 +5,22 @@ use std::fmt::{
     Result
 };
 
-#[derive(Debug)]
-pub struct HandlerError(pub &'static str);
+macro_rules! def_error
+{
+    ($error_name:ident) => {
+        #[derive(Debug)]
+        pub struct $error_name(pub &'static str);
 
-impl Display for HandlerError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result
-    {
-        write!(f, "{}", self.0)
-    }
+        impl Display for $error_name
+        {
+            fn fmt(&self, f: &mut Formatter<'_>) -> Result
+            {
+                write!(f, "{}: {}", stringify!($error_name), self.0)
+            }
+        }
+
+        impl Error for $error_name {}
+    };
 }
 
-impl Error for HandlerError {}
+def_error!(InvalidArgumentError);
