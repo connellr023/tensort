@@ -13,8 +13,7 @@ fn main() -> Result<(), Box<dyn Error>>
 	print!("Selected device: {:?}\n", model_handler.device());
 
 	let embedding = model_handler.gen_embedding(IMAGE_PATH, |tensor| {
-		tensor
-			.softmax(-1, Kind::Float)
+		tensor.softmax(-1, Kind::Float)
 	})?;
 
 	println!("Tensor embedding of the image:\n{}", embedding);

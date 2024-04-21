@@ -36,18 +36,16 @@ impl ResNet18Handler
         self.device
     }
 
-    pub fn gen_embedding(&self, image_path: &str, transformation: fn(Tensor) -> Tensor) -> Result<Tensor, &str>
+    pub fn gen_embedding(&self, image_path: &str, activation_func: fn(Tensor) -> Tensor) -> Result<Tensor, &str>
     {
         match imagenet::load_image(image_path)
         {
             Ok(image) => {
-                let image = image.to_device(self.varstore.device());
+                let image = image.to_device(self.varstore.device())
+                    .unsqueeze(0)
+                    .apply_t(&self.model, false);
 
-                Ok(transformation(
-                    image
-                        .unsqueeze(0)
-                        .apply_t(&self.model, false)
-                ))
+                Ok(activation_func(image))
             },
             Err(_) => {
                 Err("Failed to load image from path")
