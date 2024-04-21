@@ -1,6 +1,7 @@
 use tch::{Device, Tensor};
 use tch::nn::{FuncT, VarStore};
 use tch::vision::{imagenet, resnet};
+use crate::errors::HandlerError;
 
 pub struct ResNet18Handler
 {
@@ -11,7 +12,7 @@ pub struct ResNet18Handler
 
 impl ResNet18Handler
 {
-    pub fn new(pretrained_path: &'static str) -> Result<Self, &'static str>
+    pub fn new(pretrained_path: &'static str) -> Result<Self, HandlerError>
     {
         let device = Device::cuda_if_available();
         let mut varstore = VarStore::new(device);
@@ -26,7 +27,7 @@ impl ResNet18Handler
                 })
             },
             Err(_) => {
-                Err("Failed to load pretrained model from path")
+                Err(HandlerError("Failed to load pretrained model from path"))
             }
         }
     }
@@ -36,7 +37,7 @@ impl ResNet18Handler
         self.device
     }
 
-    pub fn gen_embedding(&self, image_path: &str, activation_func: fn(Tensor) -> Tensor) -> Result<Tensor, &str>
+    pub fn gen_embedding(&self, image_path: &str, activation_func: fn(Tensor) -> Tensor) -> Result<Tensor, HandlerError>
     {
         match imagenet::load_image(image_path)
         {
@@ -48,7 +49,7 @@ impl ResNet18Handler
                 Ok(activation_func(image))
             },
             Err(_) => {
-                Err("Failed to load image from path")
+                Err(HandlerError("Failed to load image from path"))
             }
         }
     }

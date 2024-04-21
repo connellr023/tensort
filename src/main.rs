@@ -1,3 +1,4 @@
+mod errors;
 mod resnet18_handler;
 
 use std::error::Error;
