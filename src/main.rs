@@ -25,27 +25,40 @@ fn main() -> Result<(), Box<dyn Error>>
 
 	let model = ResNet18Model::new(PRETRAINED_MODEL_PATH)?;
 	let embeddings = embedding_controller::gen_image_embeddings(dir, &model)?;
-	print!("Selected device: {:?}\n", model.device());
+	println!("Selected device: {:?}", model.device());
 
 	for embedding in embeddings.iter()
 	{
-		println!("path: {}\n", embedding.1.to_str().unwrap());
+		println!("path: {}", embedding.1.to_str().unwrap());
 	}
 
-	let similarities = embedding_controller::calc_pairwise_cosine_similarities(
-		embeddings
-			.iter()
-			.map(|tuple| { &tuple.0 })
-			.collect::<Vec<&Tensor>>()
-			.as_slice()
-	);
+	let binding = embeddings
+		.iter()
+		.map(|tuple| { &tuple.0 })
+		.collect::<Vec<&Tensor>>();
 
-	for similarity in similarities.iter()
-	{
-		println!("similarity: {}\n", similarity);
+	let embeddings_slice = binding
+			.as_slice();
+
+	let similarities = embedding_controller::calc_pairwise_cosine_similarities(embeddings_slice);
+
+	// for similarity in similarities.iter()
+	// {
+	// 	println!("similarity: {}\n", similarity);
+	// }
+
+	// println!("threshold: {}\n", embedding_controller::calc_similarity_threshold(similarities.as_slice(), 6));
+	let similarity_table = embedding_controller::cluster_embeddings(similarities.as_slice(), embeddings.len(), 4);
+
+	for i in 0..similarity_table.len() {
+		println!("Class {}:", i);
+
+		for j in 0..similarity_table[i].len() {
+			println!("class path: {}", embeddings[similarity_table[i][j]].1.to_str().unwrap());
+		}
+
+		println!();
 	}
-
-	println!("threshold: {}\n", embedding_controller::calc_similarity_threshold(similarities.as_slice(), 6));
 
 	// let embedding = model_handler.gen_embedding(IMAGE_PATH, |tensor| {
 	// 	tensor.softmax(-1, Kind::Float)
