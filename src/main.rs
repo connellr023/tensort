@@ -12,25 +12,28 @@ use std::error::Error;
 use std::env::args;
 use tch::Tensor;
 use tch::vision::resnet::resnet34;
-
 use crate::models::arguments_model::ArgumentsModel;
 use crate::models::cnn_model::CNNModel;
 use crate::controllers::embedding_controller;
-// use tch::Kind;
-// use tch::vision::imagenet::top;
 
-// const IMAGE_PATH: &str = "/home/connell/Programming/model-stuff/images/barbet.jpg";
 const PRETRAINED_MODEL_PATH: &str = "/home/connell/Programming/model-stuff/resnet34.ot";
 
 fn main() -> Result<(), Box<dyn Error>>
 {
-	let args = ArgumentsModel::new(args().collect())?;
-	let dir = args.target_dir();
+	// Read in command line arguments
+	let args = match ArgumentsModel::new(args().collect()) {
+		Ok(args) => args,
+		Err(err) => {
+			println!("{}", err);
+			return Ok(());
+		}
+	};
 
-	println!("{}", dir.to_str().unwrap());
+	// Print selected arguments
+	println!("{}", args);
 
 	let model = CNNModel::new(PRETRAINED_MODEL_PATH, resnet34)?;
-	let embeddings = embedding_controller::gen_image_embeddings(dir, &model)?;
+	let embeddings = embedding_controller::gen_image_embeddings(args.target_dir(), &model)?;
 	println!("Selected device: {:?}", model.device());
 
 	for embedding in embeddings.iter()
@@ -54,7 +57,7 @@ fn main() -> Result<(), Box<dyn Error>>
 	// }
 
 	// println!("threshold: {}\n", embedding_controller::calc_similarity_threshold(similarities.as_slice(), 6));
-	let similarity_table = embedding_controller::cluster_embeddings(similarities.as_slice(), embeddings.len(), 4);
+	let similarity_table = embedding_controller::cluster_embeddings(similarities.as_slice(), embeddings.len(), args.class_count());
 
 	for i in 0..similarity_table.len() {
 		println!("Class {}:", i);

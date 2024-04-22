@@ -3,7 +3,7 @@ use tch::{Device, Kind, TchError, Tensor};
 use tch::nn::{Path, FuncT, VarStore};
 use tch::vision::imagenet;
 
-pub type CNNSignature = fn(p: &Path, num_classes: i64) -> FuncT<'static>;
+pub type CNNSignature = fn(p: &Path, class_count: i64) -> FuncT<'static>;
 
 pub struct CNNModel
 {
