@@ -1,3 +1,8 @@
+// Tensor-Sort Command Line Tool
+// Author: Connell Reffo
+// Developed: 2024
+#![crate_name = "tensort_cli"]
+
 mod models;
 mod views;
 mod controllers;
@@ -6,15 +11,16 @@ mod errors;
 use std::error::Error;
 use std::env::args;
 use tch::Tensor;
+use tch::vision::resnet::resnet34;
 
 use crate::models::arguments_model::ArgumentsModel;
-use crate::models::resnet18_model::ResNet18Model;
+use crate::models::cnn_model::CNNModel;
 use crate::controllers::embedding_controller;
 // use tch::Kind;
 // use tch::vision::imagenet::top;
 
 // const IMAGE_PATH: &str = "/home/connell/Programming/model-stuff/images/barbet.jpg";
-const PRETRAINED_MODEL_PATH: &str = "/home/connell/Programming/model-stuff/resnet18.ot";
+const PRETRAINED_MODEL_PATH: &str = "/home/connell/Programming/model-stuff/resnet34.ot";
 
 fn main() -> Result<(), Box<dyn Error>>
 {
@@ -23,7 +29,7 @@ fn main() -> Result<(), Box<dyn Error>>
 
 	println!("{}", dir.to_str().unwrap());
 
-	let model = ResNet18Model::new(PRETRAINED_MODEL_PATH)?;
+	let model = CNNModel::new(PRETRAINED_MODEL_PATH, resnet34)?;
 	let embeddings = embedding_controller::gen_image_embeddings(dir, &model)?;
 	println!("Selected device: {:?}", model.device());
 

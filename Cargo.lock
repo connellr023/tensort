@@ -100,13 +100,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "clipsort-cli"
-version = "1.0.0"
-dependencies = [
- "tch",
-]
-
-[[package]]
 name = "constant_time_eq"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -519,6 +512,13 @@ dependencies = [
  "thiserror",
  "torch-sys",
  "zip",
+]
+
+[[package]]
+name = "tensort-cli"
+version = "1.0.0"
+dependencies = [
+ "tch",
 ]
 
 [[package]]

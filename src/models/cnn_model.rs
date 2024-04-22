@@ -1,22 +1,24 @@
 use std::path::PathBuf;
 use tch::{Device, Kind, TchError, Tensor};
-use tch::nn::{FuncT, VarStore};
-use tch::vision::{imagenet, resnet};
+use tch::nn::{Path, FuncT, VarStore};
+use tch::vision::imagenet;
 
-pub struct ResNet18Model
+pub type CNNSignature = fn(p: &Path, num_classes: i64) -> FuncT<'static>;
+
+pub struct CNNModel
 {
     device: Device,
     varstore: VarStore,
     model: FuncT<'static>
 }
 
-impl ResNet18Model
+impl CNNModel
 {
-    pub fn new(pretrained_path: &'static str) -> Result<Self, TchError>
+    pub fn new(pretrained_path: &'static str, cnn_func: CNNSignature) -> Result<Self, TchError>
     {
         let device = Device::cuda_if_available();
         let mut varstore = VarStore::new(device);
-        let model = resnet::resnet18(&varstore.root(), imagenet::CLASS_COUNT);
+        let model = cnn_func(&varstore.root(), imagenet::CLASS_COUNT);
 
         varstore.load(pretrained_path)?;
         

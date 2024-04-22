@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::io::Result;
 use std::fs::read_dir;
 use tch::Tensor;
-use crate::models::resnet18_model::ResNet18Model;
+use crate::models::cnn_model::CNNModel;
 
 pub type TensorPathTuple = (Tensor, PathBuf);
 pub type Table<T> = Vec<Vec<T>>;
@@ -75,7 +75,7 @@ pub fn calc_similarity_threshold(similarities: &[f64], class_count: usize) -> f6
     (((sum / class_count as f64) + min_between_clusters)) / 2.0
 }
 
-pub fn gen_image_embeddings(dir: &PathBuf, model: &ResNet18Model) -> Result<Vec<TensorPathTuple>>
+pub fn gen_image_embeddings(dir: &PathBuf, model: &CNNModel) -> Result<Vec<TensorPathTuple>>
 {
     let mut embeddings = vec![];
 
