@@ -1,8 +1,9 @@
+use std::path::PathBuf;
 use crate::errors::InvalidArgumentError;
 
 pub struct ArgumentsModel
 {
-    target_dir: String
+    target_dir: PathBuf
 }
 
 impl ArgumentsModel
@@ -14,12 +15,17 @@ impl ArgumentsModel
             return Err(InvalidArgumentError("Not enough arguments provided"));
         }
 
+        let target_dir = PathBuf::from(args[1].clone());
+        if !target_dir.is_dir() {
+            return Err(InvalidArgumentError("Provided path is not a directory"));
+        }
+
         Ok(Self {
-            target_dir: args[1].clone()
+            target_dir
         })
     }
 
-    pub fn target_dir(&self) -> &String
+    pub fn target_dir(&self) -> &PathBuf
     {
         &self.target_dir
     }

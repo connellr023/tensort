@@ -1,4 +1,5 @@
-use tch::{Device, TchError, Tensor};
+use std::path::PathBuf;
+use tch::{Device, Kind, TchError, Tensor};
 use tch::nn::{FuncT, VarStore};
 use tch::vision::{imagenet, resnet};
 
@@ -31,14 +32,15 @@ impl ResNet18Model
         self.device
     }
 
-    pub fn gen_embedding(&self, image_path: &str, activation_func: fn(Tensor) -> Tensor) -> Result<Tensor, TchError>
+    pub fn gen_embedding(&self, image_path: &PathBuf) -> Result<Tensor, TchError>
     {
-        let image = imagenet::load_image(image_path)?;
-        
-        let image = image.to_device(self.varstore.device())
+        let embedding = imagenet::load_image(image_path)?;
+        let embedding = embedding.to_device(self.varstore.device())
             .unsqueeze(0)
-            .apply_t(&self.model, false);
+            .apply_t(&self.model, false)
+            .softmax(-1, Kind::Float)
+            .squeeze();
 
-        Ok(activation_func(image))
+        Ok(embedding)
     }
 }
