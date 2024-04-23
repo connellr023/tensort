@@ -7,7 +7,7 @@ use crate::models::cnn_model::CNNModel;
 pub type TensorPathTuple = (Tensor, PathBuf);
 pub type Table<T> = Vec<Vec<T>>;
 
-fn extension_is_image(extension: &str) -> bool
+pub fn extension_is_image(extension: &str) -> bool
 {
     match extension.to_lowercase().as_str()
     {
@@ -16,7 +16,7 @@ fn extension_is_image(extension: &str) -> bool
     }
 }
 
-fn cosine_similarity(t1: &Tensor, t2: &Tensor) -> f64
+pub fn cosine_similarity(t1: &Tensor, t2: &Tensor) -> f64
 {
     let dot_product = t1.dot(t2);
     let norm1 = t1.norm();

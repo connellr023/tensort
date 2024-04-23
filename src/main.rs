@@ -8,33 +8,48 @@ mod views;
 mod controllers;
 mod errors;
 
-use std::error::Error;
 use std::env::args;
 use tch::Tensor;
 use tch::vision::resnet::resnet34;
 use crate::models::arguments_model::ArgumentsModel;
 use crate::models::cnn_model::CNNModel;
-use crate::controllers::embedding_controller;
+use crate::controllers::embeddings_controller::*;
 
 const PRETRAINED_MODEL_PATH: &str = "/home/connell/Programming/model-stuff/resnet34.ot";
 
-fn main() -> Result<(), Box<dyn Error>>
+fn main()
 {
 	// Read in command line arguments
 	let args = match ArgumentsModel::new(args().collect()) {
 		Ok(args) => args,
 		Err(err) => {
-			println!("{}", err);
-			return Ok(());
+			eprintln!("{}", err);
+			return;
 		}
 	};
 
 	// Print selected arguments
 	println!("{}", args);
 
-	let model = CNNModel::new(PRETRAINED_MODEL_PATH, resnet34)?;
-	let embeddings = embedding_controller::gen_image_embeddings(args.target_dir(), &model)?.0;
-	println!("Selected device: {:?}", model.device());
+	// Initialize convolutional neural network and print related info
+	let model = match CNNModel::new(PRETRAINED_MODEL_PATH, resnet34) {
+		Ok(model) => model,
+		Err(err) => {
+			eprintln!("{}", err);
+			return;
+		}
+	};
+
+	println!("{}", model);
+
+	// Read the target dir and process each image
+	let (embeddings, missed_images) = match gen_image_embeddings(args.target_dir(), &model) {
+		Ok(result) => result,
+		Err(err) => {
+			eprintln!("{}", err);
+			return;
+		}
+	};
 
 	for embedding in embeddings.iter()
 	{
@@ -49,7 +64,7 @@ fn main() -> Result<(), Box<dyn Error>>
 	let embeddings_slice = binding
 			.as_slice();
 
-	let similarities = embedding_controller::calc_pairwise_cosine_similarities(embeddings_slice);
+	let similarities = calc_pairwise_cosine_similarities(embeddings_slice);
 
 	// for similarity in similarities.iter()
 	// {
@@ -57,7 +72,7 @@ fn main() -> Result<(), Box<dyn Error>>
 	// }
 
 	// println!("threshold: {}\n", embedding_controller::calc_similarity_threshold(similarities.as_slice(), 6));
-	let similarity_table = embedding_controller::cluster_embeddings(similarities.as_slice(), embeddings.len(), args.class_count());
+	let similarity_table = cluster_embeddings(similarities.as_slice(), embeddings.len(), args.class_count());
 
 	for i in 0..similarity_table.len() {
 		println!("Class {}:", i);
@@ -68,17 +83,4 @@ fn main() -> Result<(), Box<dyn Error>>
 
 		println!();
 	}
-
-	// let embedding = model_handler.gen_embedding(IMAGE_PATH, |tensor| {
-	// 	tensor.softmax(-1, Kind::Float)
-	// })?;
-
-	// println!("Tensor embedding of the image:\n{}", embedding);
-	
-	// for (probability, class) in top(&embedding, 5).iter()
-	// {
-	// 	println!("{:50} {:5.2}%", class, probability * 100.0);
-	// }
-
-	Ok(())
 }

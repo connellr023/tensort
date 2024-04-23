@@ -1,1 +1,1 @@
-pub mod embedding_controller;
+pub mod embeddings_controller;
