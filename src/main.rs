@@ -1,7 +1,7 @@
 // Tensor-Sort Command Line Tool
 // Author: Connell Reffo
 // Developed: 2024
-#![crate_name = "tensort_cli"]
+#![crate_name = "tensort"]
 
 mod models;
 mod views;
@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn Error>>
 	println!("{}", args);
 
 	let model = CNNModel::new(PRETRAINED_MODEL_PATH, resnet34)?;
-	let embeddings = embedding_controller::gen_image_embeddings(args.target_dir(), &model)?;
+	let embeddings = embedding_controller::gen_image_embeddings(args.target_dir(), &model)?.0;
 	println!("Selected device: {:?}", model.device());
 
 	for embedding in embeddings.iter()

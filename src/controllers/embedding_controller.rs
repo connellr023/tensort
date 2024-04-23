@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use std::io::Result;
+use std::io::{Error, ErrorKind, Result};
 use std::fs::read_dir;
 use tch::Tensor;
 use crate::models::cnn_model::CNNModel;
@@ -75,12 +75,13 @@ pub fn calc_similarity_threshold(similarities: &[f64], class_count: usize) -> f6
     (((sum / class_count as f64) + min_between_clusters)) / 2.0
 }
 
-pub fn gen_image_embeddings(dir: &PathBuf, model: &CNNModel) -> Result<Vec<TensorPathTuple>>
+pub fn gen_image_embeddings(dir: &PathBuf, model: &CNNModel) -> Result<(Vec<TensorPathTuple>, Vec<PathBuf>)>
 {
     let mut embeddings = vec![];
+    let mut missed_images = vec![];
 
     if !dir.is_dir() {
-        return Ok(embeddings);
+        return Err(Error::new(ErrorKind::InvalidInput, "Path supplied is not a directory"));
     }
 
     for file in read_dir(dir)? {
@@ -89,14 +90,15 @@ pub fn gen_image_embeddings(dir: &PathBuf, model: &CNNModel) -> Result<Vec<Tenso
 
         if let Some(extension) = path.extension().and_then(|extension| { extension.to_str() }) {
             if extension_is_image(extension) {
-                if let Ok(embedding) = model.gen_embedding(&path) {
-                    embeddings.push((embedding, path));
+                match model.gen_embedding(&path) {
+                    Ok(embedding) => embeddings.push((embedding, path)),
+                    Err(_) => missed_images.push(path)
                 }
             }
         }
     }
 
-    Ok(embeddings)
+    Ok((embeddings, missed_images))
 }
 
 pub fn cluster_embeddings(similarities: &[f64], embedding_count: usize, class_count: usize) -> Table<usize>

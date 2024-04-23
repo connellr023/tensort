@@ -515,7 +515,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tensort-cli"
+name = "tensort"
 version = "1.0.0"
 dependencies = [
  "tch",

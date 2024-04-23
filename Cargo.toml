@@ -1,5 +1,5 @@
 [package]
-name = "tensort-cli"
+name = "tensort"
 version = "1.0.0"
 edition = "2021"
 
