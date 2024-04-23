@@ -28,7 +28,7 @@ fn run(args: Vec<String>) -> Result<(), Box<dyn Error>>
 
 	// Initialize convolutional neural network and print related info
 	let model = CNNModel::new(PRETRAINED_MODEL_PATH, resnet34)?;
-	println!("{}\n", model);
+	println!("{}", model);
 
 	// Read the target dir and process each image
 	println!("Generating image embeddings...");
@@ -40,7 +40,7 @@ fn run(args: Vec<String>) -> Result<(), Box<dyn Error>>
 	}
 
 	// Group embeddings together
-	println!("\nComputing similarities and clustering embeddings...\n");
+	println!("Computing similarities and clustering embeddings...\n");
 	let similarities = calc_pairwise_cosine_similarities(embeddings.as_slice());
 	let similarity_table = cluster_embeddings(similarities.as_slice(), embeddings.len(), args.class_count());
 

@@ -8,10 +8,13 @@ struct MissedImagesFormatter(Vec<PathBuf>);
 impl Display for MissedImagesFormatter
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        writeln!(f, "The following images failed to process:")?;
+        writeln!(f, "\nThe following images failed to process:")?;
 
         for path in &self.0 {
-            writeln!(f, "\t=> {}", path.to_str().unwrap())?;
+            writeln!(f, "\t=> {}", path
+                .to_str()
+                .unwrap()
+            )?;
         }
 
         Ok(())
@@ -42,7 +45,7 @@ impl Display for ClassifiedImagesFormatter
             writeln!(f, "Class {}:", i)?;
     
             for j in 0..self.similarity_table[i].len() {
-                writeln!(f, "class path: {}", self.embeddings[self.similarity_table[i][j]]
+                writeln!(f, "\t=> {}", self.embeddings[self.similarity_table[i][j]]
                     .1
                     .to_str()
                     .unwrap()
