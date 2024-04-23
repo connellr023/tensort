@@ -8,79 +8,53 @@ mod views;
 mod controllers;
 mod errors;
 
+use std::error::Error;
 use std::env::args;
-use tch::Tensor;
 use tch::vision::resnet::resnet34;
 use crate::models::arguments_model::ArgumentsModel;
 use crate::models::cnn_model::CNNModel;
+use crate::views::results_view::*;
 use crate::controllers::embeddings_controller::*;
 
 const PRETRAINED_MODEL_PATH: &str = "/home/connell/Programming/model-stuff/resnet34.ot";
 
-fn main()
+fn run(args: Vec<String>) -> Result<(), Box<dyn Error>>
 {
 	// Read in command line arguments
-	let args = match ArgumentsModel::new(args().collect()) {
-		Ok(args) => args,
-		Err(err) => {
-			eprintln!("{}", err);
-			return;
-		}
-	};
+	let args = ArgumentsModel::new(args)?;
 
 	// Print selected arguments
 	println!("{}", args);
 
 	// Initialize convolutional neural network and print related info
-	let model = match CNNModel::new(PRETRAINED_MODEL_PATH, resnet34) {
-		Ok(model) => model,
-		Err(err) => {
-			eprintln!("{}", err);
-			return;
-		}
-	};
-
-	println!("{}", model);
+	let model = CNNModel::new(PRETRAINED_MODEL_PATH, resnet34)?;
+	println!("{}\n", model);
 
 	// Read the target dir and process each image
-	let (embeddings, missed_images) = match gen_image_embeddings(args.target_dir(), &model) {
-		Ok(result) => result,
-		Err(err) => {
-			eprintln!("{}", err);
-			return;
-		}
-	};
+	println!("Generating image embeddings...");
+	let (embeddings, missed_images) = gen_image_embeddings(args.target_dir(), &model)?;
 
-	for embedding in embeddings.iter()
-	{
-		println!("path: {}", embedding.1.to_str().unwrap());
+	// If some images failed to process, list them
+	if missed_images.len() > 0 {
+		println!("{}", format_missed_images(missed_images));
 	}
 
-	let binding = embeddings
-		.iter()
-		.map(|tuple| { &tuple.0 })
-		.collect::<Vec<&Tensor>>();
-
-	let embeddings_slice = binding
-			.as_slice();
-
-	let similarities = calc_pairwise_cosine_similarities(embeddings_slice);
-
-	// for similarity in similarities.iter()
-	// {
-	// 	println!("similarity: {}\n", similarity);
-	// }
-
-	// println!("threshold: {}\n", embedding_controller::calc_similarity_threshold(similarities.as_slice(), 6));
+	// Group embeddings together
+	println!("\nComputing similarities and clustering embeddings...\n");
+	let similarities = calc_pairwise_cosine_similarities(embeddings.as_slice());
 	let similarity_table = cluster_embeddings(similarities.as_slice(), embeddings.len(), args.class_count());
 
-	for i in 0..similarity_table.len() {
-		println!("Class {}:", i);
+	// Print classification results
+	print!("{}", format_classified_images(similarity_table, embeddings));
 
-		for j in 0..similarity_table[i].len() {
-			println!("class path: {}", embeddings[similarity_table[i][j]].1.to_str().unwrap());
-		}
+	Ok(())
+}
 
-		println!();
+fn main()
+{
+	let args = args().collect();
+
+	if let Err(err) = run(args) {
+		eprintln!("{}", err);
 	}
 }

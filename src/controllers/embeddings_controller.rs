@@ -25,14 +25,14 @@ pub fn cosine_similarity(t1: &Tensor, t2: &Tensor) -> f64
     dot_product.double_value(&[]) / (norm1.double_value(&[]) * norm2.double_value(&[]))
 }
 
-pub fn calc_pairwise_cosine_similarities(embeddings: &[&Tensor]) -> Vec<f64>
+pub fn calc_pairwise_cosine_similarities(embeddings: &[TensorPathTuple]) -> Vec<f64>
 {
     let embedding_count = embeddings.len();
     let mut similarities = Vec::with_capacity(embedding_count * embedding_count);
 
     for i in 0..embedding_count {
         for j in 0..embedding_count {
-            let similarity = cosine_similarity(embeddings[i], embeddings[j]);
+            let similarity = cosine_similarity(&embeddings[i].0, &embeddings[j].0);
             similarities.push(similarity);
         }
     }
@@ -55,7 +55,7 @@ pub fn calc_similarity_threshold(similarities: &[f64], class_count: usize) -> f6
             .fold(
                 std::f64::NEG_INFINITY,
                 |max, similarity| { max.max(similarity) }
-        );
+            );
 
         max_within_clusters.push(max);
     }
@@ -66,7 +66,7 @@ pub fn calc_similarity_threshold(similarities: &[f64], class_count: usize) -> f6
         .fold(
             std::f64::INFINITY,
             |min, &max_similarity| { min.min(max_similarity) }
-    );
+        );
 
     let sum = max_within_clusters
         .iter()
