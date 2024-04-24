@@ -7,7 +7,7 @@ impl Display for ArgumentsModel
     {
         write!(
             f,
-            "Running tensort with options...\n\
+            "Running tensort with options:\n\
             <target_dir>        : {}\n\
             <class_count>       : {}\n\
             <should_gen_names>  : {}

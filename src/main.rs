@@ -28,27 +28,31 @@ fn run(args: Vec<String>) -> Result<(), Box<dyn Error>>
 
 	// Initialize convolutional neural network and print related info
 	let model = CNNModel::new(PRETRAINED_MODEL_PATH, resnet34)?;
-	println!("{}", model);
+	println!("{}\n", model);
 
 	// Read the target dir and process each image
 	println!("Generating image embeddings...");
-	let (embeddings, missed_images) = gen_image_embeddings(args.target_dir(), &model)?;
+	let (embeddings, image_paths, missed_image_paths) = gen_image_embeddings(args.target_dir(), &model)?;
 
 	// If some images failed to process, list them
-	if missed_images.len() > 0 {
-		println!("{}", format_missed_images(missed_images));
+	if missed_image_paths.len() > 0 {
+		println!("{}", format_missed_images(missed_image_paths));
 	}
 
 	// Group embeddings together
-	println!("Computing similarities and clustering embeddings...\n");
+	println!("Computing similarities and clustering embeddings...");
 	let similarities = calc_pairwise_cosine_similarities(embeddings.as_slice());
 	let similarity_table = cluster_embeddings(similarities.as_slice(), embeddings.len(), args.class_count());
 
 	// Generate class names if option is set
-	let class_names = if args.should_gen_names() { gen_class_names(embeddings.as_slice(), &similarity_table) } else { vec![] };
+	let class_names = if args.should_gen_names() {
+		println!("Averaging tensors and deriving class names...");
+		Some(gen_class_names(embeddings.as_slice(), &similarity_table))
+	}
+	else { None };
 
 	// Print classification results
-	print!("{}", format_classified_images(similarity_table, embeddings, class_names));
+	print!("\n{}", format_classified_images(similarity_table, image_paths, class_names));
 
 	Ok(())
 }

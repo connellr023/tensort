@@ -1,7 +1,6 @@
 use std::fmt::{Display, Formatter, Result};
 use std::path::PathBuf;
-
-use crate::controllers::embeddings_controller::{Table, TensorPathTuple};
+use crate::controllers::embeddings_controller::Table;
 
 struct MissedImagesFormatter(Vec<PathBuf>);
 
@@ -20,25 +19,24 @@ impl Display for MissedImagesFormatter
         Ok(())
     }
 }
-
 struct ClassifiedImagesFormatter
 {
     similarity_table: Table<usize>,
-    embeddings: Vec<TensorPathTuple>,
-    class_names: Vec<Option<String>>
+    image_paths: Vec<PathBuf>,
+    class_names: Option<Vec<String>>
 }
 
 impl ClassifiedImagesFormatter
 {
     fn new(
         similarity_table: Table<usize>,
-        embeddings: Vec<TensorPathTuple>,
-        class_names: Vec<Option<String>>
+        image_paths: Vec<PathBuf>,
+        class_names: Option<Vec<String>>
     ) -> Self
     {
         Self {
             similarity_table,
-            embeddings,
+            image_paths,
             class_names
         }
     }
@@ -48,26 +46,17 @@ impl Display for ClassifiedImagesFormatter
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         for i in 0..self.similarity_table.len() {
-            let class_name = match self.class_names.get(i) {
-                Some(class_name_opt) => match class_name_opt {
-                    Some(class_name) => Some(class_name),
-                    None => None
-                },
-                None => None
-            };
-
-            match class_name {
-                Some(class_name) => {
-                    writeln!(f, "Class {} - {}:", i, class_name)?;
+            match &self.class_names {
+                Some(class_names) => {
+                    writeln!(f, "Class {} - ({}):", i + 1, class_names[i])?;
                 },
                 None => {
-                    writeln!(f, "Class {}:", i)?;
+                    writeln!(f, "Class {}:", i + 1)?;
                 }
             }
     
             for j in 0..self.similarity_table[i].len() {
-                writeln!(f, "\t=> {}", self.embeddings[self.similarity_table[i][j]]
-                    .1
+                writeln!(f, "\t=> {}", self.image_paths[self.similarity_table[i][j]]
                     .to_str()
                     .unwrap()
                 )?;
@@ -87,9 +76,9 @@ pub fn format_missed_images(missed_images: Vec<PathBuf>) -> impl Display
 
 pub fn format_classified_images(
     similarity_table: Table<usize>,
-    embeddings: Vec<TensorPathTuple>,
-    class_names: Vec<Option<String>>
+    image_paths: Vec<PathBuf>,
+    class_names: Option<Vec<String>>
 ) -> impl Display
 {
-    ClassifiedImagesFormatter::new(similarity_table, embeddings, class_names)
+    ClassifiedImagesFormatter::new(similarity_table, image_paths, class_names)
 }

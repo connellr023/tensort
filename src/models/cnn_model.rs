@@ -36,7 +36,7 @@ impl CNNModel
 
     pub fn gen_embedding(&self, image_path: &PathBuf) -> Result<Tensor, TchError>
     {
-        let embedding = imagenet::load_image(image_path)?;
+        let embedding = imagenet::load_image_and_resize224(image_path)?;
         let embedding = embedding.to_device(self.varstore.device())
             .unsqueeze(0)
             .apply_t(&self.model, false)
