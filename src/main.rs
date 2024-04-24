@@ -44,8 +44,11 @@ fn run(args: Vec<String>) -> Result<(), Box<dyn Error>>
 	let similarities = calc_pairwise_cosine_similarities(embeddings.as_slice());
 	let similarity_table = cluster_embeddings(similarities.as_slice(), embeddings.len(), args.class_count());
 
+	// Generate class names if option is set
+	let class_names = if args.should_gen_names() { gen_class_names(embeddings.as_slice(), &similarity_table) } else { vec![] };
+
 	// Print classification results
-	print!("{}", format_classified_images(similarity_table, embeddings));
+	print!("{}", format_classified_images(similarity_table, embeddings, class_names));
 
 	Ok(())
 }

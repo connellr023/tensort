@@ -24,16 +24,22 @@ impl Display for MissedImagesFormatter
 struct ClassifiedImagesFormatter
 {
     similarity_table: Table<usize>,
-    embeddings: Vec<TensorPathTuple>
+    embeddings: Vec<TensorPathTuple>,
+    class_names: Vec<Option<String>>
 }
 
 impl ClassifiedImagesFormatter
 {
-    fn new(similarity_table: Table<usize>, embeddings: Vec<TensorPathTuple>) -> Self
+    fn new(
+        similarity_table: Table<usize>,
+        embeddings: Vec<TensorPathTuple>,
+        class_names: Vec<Option<String>>
+    ) -> Self
     {
         Self {
             similarity_table,
-            embeddings
+            embeddings,
+            class_names
         }
     }
 }
@@ -42,7 +48,22 @@ impl Display for ClassifiedImagesFormatter
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         for i in 0..self.similarity_table.len() {
-            writeln!(f, "Class {}:", i)?;
+            let class_name = match self.class_names.get(i) {
+                Some(class_name_opt) => match class_name_opt {
+                    Some(class_name) => Some(class_name),
+                    None => None
+                },
+                None => None
+            };
+
+            match class_name {
+                Some(class_name) => {
+                    writeln!(f, "Class {} - {}:", i, class_name)?;
+                },
+                None => {
+                    writeln!(f, "Class {}:", i)?;
+                }
+            }
     
             for j in 0..self.similarity_table[i].len() {
                 writeln!(f, "\t=> {}", self.embeddings[self.similarity_table[i][j]]
@@ -64,7 +85,11 @@ pub fn format_missed_images(missed_images: Vec<PathBuf>) -> impl Display
     MissedImagesFormatter(missed_images)
 }
 
-pub fn format_classified_images(similarity_table: Table<usize>, embeddings: Vec<TensorPathTuple>) -> impl Display
+pub fn format_classified_images(
+    similarity_table: Table<usize>,
+    embeddings: Vec<TensorPathTuple>,
+    class_names: Vec<Option<String>>
+) -> impl Display
 {
-    ClassifiedImagesFormatter::new(similarity_table, embeddings)
+    ClassifiedImagesFormatter::new(similarity_table, embeddings, class_names)
 }

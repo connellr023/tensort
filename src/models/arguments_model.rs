@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use crate::errors::InvalidArgumentError;
+use crate::errors::InvalidUsageError;
 
 /// Minimum number of arguments that should be provided to the CLI <br />
 /// Required: <br />
@@ -20,22 +20,22 @@ impl ArgumentsModel
 {
     /// Factory method for a new arguments structure <br />
     /// Represents the values passed to the CLI in the context of this tool
-    pub fn new(args: Vec<String>) -> Result<Self, InvalidArgumentError>
+    pub fn new(args: Vec<String>) -> Result<Self, InvalidUsageError>
     {
         // Check if enough arguments are provided
         if args.len() < MIN_ARG_COUNT {
-            return Err(InvalidArgumentError("Not enough arguments provided"));
+            return Err(InvalidUsageError("Not enough arguments provided"));
         }
 
         let target_dir = PathBuf::from(args[1].clone());
         if !target_dir.is_dir() {
-            return Err(InvalidArgumentError("Provided path is not a directory"));
+            return Err(InvalidUsageError("Provided path is not a directory"));
         }
 
         let class_count = match args[2].parse::<usize>() {
             Ok(class_count) => class_count,
             Err(_) => {
-                return Err(InvalidArgumentError("Invalid number provided for class count"));
+                return Err(InvalidUsageError("Invalid number provided for class count"));
             }
         };
 

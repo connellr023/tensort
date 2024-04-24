@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter, Result};
-use crate::errors::InvalidArgumentError;
+use crate::errors::InvalidUsageError;
 
-impl Display for InvalidArgumentError
+impl Display for InvalidUsageError
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result
     {

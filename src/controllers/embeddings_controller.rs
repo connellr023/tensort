@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use std::io::{Error, ErrorKind, Result};
 use std::fs::read_dir;
+use tch::vision::imagenet::top;
 use tch::Tensor;
 use crate::models::cnn_model::CNNModel;
 
@@ -11,7 +12,7 @@ pub fn extension_is_image(extension: &str) -> bool
 {
     match extension.to_lowercase().as_str()
     {
-        "jpg" | "jpeg" | "png" | "gif" | "bmp" | "tiff" => true,
+        "jpg" | "jpeg" | "png" | "gif" | "bmp" | "tiff" | "webp" => true,
         _ => false
     }
 }
@@ -160,4 +161,50 @@ pub fn cluster_embeddings(similarities: &[f64], embedding_count: usize, class_co
     }
 
     clusters
+}
+
+pub fn calc_average_embedding(embeddings: &[&Tensor]) -> Tensor
+{
+    let mut tensor_sum = Tensor::zeros_like(&embeddings[0]);
+
+    embeddings
+        .iter()
+        .for_each(|embedding| {
+
+            // Perform vector addition on each tensor
+            tensor_sum += *embedding;
+        });
+
+    // Calculate average of each dimension
+    tensor_sum / embeddings.len() as f64
+}
+
+pub fn gen_class_names(embeddings: &[TensorPathTuple], table: &Table<usize>) -> Vec<Option<String>>
+{
+    let class_count = table.len();
+    let mut class_names = Vec::with_capacity(class_count);
+
+    for i in 0..class_count {
+        let row = &table[i];
+
+        if row.len() == 0 {
+            class_names.push(None);
+            continue;
+        }
+
+        let row_embeddings: Vec<&Tensor> = row
+            .iter()
+            .map(|embedding_index| { &embeddings[*embedding_index].0 })
+            .collect();
+
+        let average_embedding = calc_average_embedding(row_embeddings.as_slice());
+        let class_name = match top(&average_embedding, 1).first() {
+            Some(top_class_name) => Some(top_class_name.1.clone()),
+            None => None
+        };
+
+        class_names.push(class_name);
+    }
+
+    class_names
 }
