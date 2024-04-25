@@ -14,6 +14,9 @@ pub fn extension_is_image(extension: &str) -> bool
     }
 }
 
+/// For each image in the target `dir` <br />
+/// Will utilize an already initialized convolutional neural network
+/// to generate embeddings for each image in `dir`
 pub fn gen_image_embeddings(dir: &PathBuf, model: &CNNModel) -> io::Result<(Vec<Tensor>, Vec<PathBuf>, Vec<PathBuf>)>
 {
     let mut embeddings = vec![];
@@ -44,6 +47,8 @@ pub fn gen_image_embeddings(dir: &PathBuf, model: &CNNModel) -> io::Result<(Vec<
     Ok((embeddings, images_paths, missed_images_paths))
 }
 
+/// Uses the table generated from sorting and the generated class names <br />
+/// Will re-arrange the target `dir` to reflect the sorting results
 pub fn update_target_dir(
     dir: &PathBuf,
     image_paths: &[PathBuf],

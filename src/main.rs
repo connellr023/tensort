@@ -10,7 +10,7 @@ mod errors;
 
 use std::error::Error;
 use std::env::args;
-use tch::vision::resnet::resnet34;
+use tch::vision::resnet;
 use crate::models::arguments_model::ArgumentsModel;
 use crate::models::cnn_model::CNNModel;
 use crate::views::results_view::*;
@@ -28,7 +28,7 @@ fn run(args: Vec<String>) -> Result<(), Box<dyn Error>>
 	println!("{}", args);
 
 	// Initialize convolutional neural network and print related info
-	let model = CNNModel::new(PRETRAINED_MODEL_PATH, resnet34)?;
+	let model = CNNModel::new(PRETRAINED_MODEL_PATH, resnet::resnet34)?;
 	println!("{}\n", model);
 
 	// Read the target dir and process each image

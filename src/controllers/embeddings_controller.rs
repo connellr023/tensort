@@ -27,6 +27,8 @@ pub fn calc_pairwise_cosine_similarities(embeddings: &[Tensor]) -> Vec<f64>
     similarities
 }
 
+/// Formula for calculating the similarity threshold
+/// for comparing image embeddings
 pub fn calc_similarity_threshold(similarities: &[f64], class_count: usize) -> f64
 {
     let similarities_per_class = similarities.len() / class_count;
@@ -62,6 +64,9 @@ pub fn calc_similarity_threshold(similarities: &[f64], class_count: usize) -> f6
     (((sum / class_count as f64) + min_between_clusters)) / 2.0
 }
 
+/// The main sorting algorithm <br />
+/// Given a slice of pre-computed pairwise similarities,
+/// returns a table (2D vector) of embedding indicies that represent their "clusters"
 pub fn cluster_embeddings(similarities: &[f64], embedding_count: usize, class_count: usize) -> Table<usize>
 {
     let threshold = calc_similarity_threshold(similarities, class_count);
@@ -83,9 +88,9 @@ pub fn cluster_embeddings(similarities: &[f64], embedding_count: usize, class_co
             if let Some(first_embedding_index) = clusters[class_index].first() {
 
                 // Calculate row major order index offset
-                let similarity_index_offset = first_embedding_index + (embedding_index * embedding_count);
+                let similarity_index = first_embedding_index + (embedding_index * embedding_count);
 
-                if similarity_index_offset < similarities.len() && similarities[similarity_index_offset] < threshold {
+                if similarity_index < similarities.len() && similarities[similarity_index] < threshold {
                     continue;
                 }
             }
@@ -107,8 +112,8 @@ pub fn cluster_embeddings(similarities: &[f64], embedding_count: usize, class_co
         // Probe the table to find which classification the overflowed embeddings fit best into
         for class_index in 0..class_count {
             if let Some(first_embedding_index) = clusters[class_index].first() {
-                let similarity_index_offset = first_embedding_index + (embedding_index * embedding_count);
-                let similarity = similarities[similarity_index_offset];
+                let similarity_index = first_embedding_index + (embedding_index * embedding_count);
+                let similarity = similarities[similarity_index];
 
                 // Update best if the current is better than previous best
                 if similarity > best.1 {
@@ -123,6 +128,7 @@ pub fn cluster_embeddings(similarities: &[f64], embedding_count: usize, class_co
     clusters
 }
 
+/// Takes a slice of tensors and returns a tensor which is an average of each dimension
 pub fn calc_average_embedding(embeddings: &[&Tensor]) -> Tensor
 {
     let mut tensor_sum = Tensor::zeros_like(&embeddings[0]);
@@ -139,6 +145,8 @@ pub fn calc_average_embedding(embeddings: &[&Tensor]) -> Tensor
     tensor_sum / embeddings.len() as f64
 }
 
+/// Simply generates basic class names as a number representing order <br />
+/// "Class 1, Class 2, ..., Class {n}"
 pub fn gen_default_class_names(class_count: usize) -> Vec<String>
 {
     let mut class_names = Vec::with_capacity(class_count);
@@ -150,6 +158,8 @@ pub fn gen_default_class_names(class_count: usize) -> Vec<String>
     class_names
 }
 
+/// Given a slice of embeddings and the sorted table,
+/// generate the most likely name for each classification (by averaging tensors)
 pub fn gen_class_names(embeddings: &[Tensor], table: &Table<usize>) -> Vec<String>
 {
     let class_count = table.len();
