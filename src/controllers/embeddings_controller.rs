@@ -1,20 +1,7 @@
-use std::io;
-use std::fs::read_dir;
-use tch::vision::imagenet::top;
-use std::path::PathBuf;
+use tch::vision::imagenet;
 use tch::Tensor;
-use crate::models::cnn_model::CNNModel;
 
 pub type Table<T> = Vec<Vec<T>>;
-
-pub fn extension_is_image(extension: &str) -> bool
-{
-    match extension.to_lowercase().as_str()
-    {
-        "jpg" | "jpeg" | "png" | "gif" | "bmp" | "tiff" => true,
-        _ => false
-    }
-}
 
 pub fn cosine_similarity(t1: &Tensor, t2: &Tensor) -> f64
 {
@@ -73,36 +60,6 @@ pub fn calc_similarity_threshold(similarities: &[f64], class_count: usize) -> f6
         .sum::<f64>();
 
     (((sum / class_count as f64) + min_between_clusters)) / 2.0
-}
-
-pub fn gen_image_embeddings(dir: &PathBuf, model: &CNNModel) -> io::Result<(Vec<Tensor>, Vec<PathBuf>, Vec<PathBuf>)>
-{
-    let mut embeddings = vec![];
-    let mut images_paths = vec![];
-    let mut missed_images_paths = vec![];
-
-    if !dir.is_dir() {
-        return Err(io::Error::new(io::ErrorKind::InvalidInput, "Path supplied is not a directory"));
-    }
-
-    for file in read_dir(dir)? {
-        let file = file?;
-        let path = file.path();
-
-        if let Some(extension) = path.extension().and_then(|extension| { extension.to_str() }) {
-            if extension_is_image(extension) {
-                match model.gen_embedding(&path) {
-                    Ok(embedding) => {
-                        embeddings.push(embedding);
-                        images_paths.push(path);
-                    },
-                    Err(_) => missed_images_paths.push(path)
-                }
-            }
-        }
-    }
-
-    Ok((embeddings, images_paths, missed_images_paths))
 }
 
 pub fn cluster_embeddings(similarities: &[f64], embedding_count: usize, class_count: usize) -> Table<usize>
@@ -182,6 +139,17 @@ pub fn calc_average_embedding(embeddings: &[&Tensor]) -> Tensor
     tensor_sum / embeddings.len() as f64
 }
 
+pub fn gen_default_class_names(class_count: usize) -> Vec<String>
+{
+    let mut class_names = Vec::with_capacity(class_count);
+
+    for i in 0..class_count {
+        class_names.push(format!("Class {}", i + 1));
+    }
+
+    class_names
+}
+
 pub fn gen_class_names(embeddings: &[Tensor], table: &Table<usize>) -> Vec<String>
 {
     let class_count = table.len();
@@ -190,8 +158,9 @@ pub fn gen_class_names(embeddings: &[Tensor], table: &Table<usize>) -> Vec<Strin
     for i in 0..class_count {
         let row = &table[i];
 
+        // Simply fill the rest of the vector since the entire space needs to be used
         if row.len() == 0 {
-            class_names.push(String::new());
+            class_names.push(format!("Empty class ({})", i + 1));
             continue;
         }
 
@@ -201,8 +170,8 @@ pub fn gen_class_names(embeddings: &[Tensor], table: &Table<usize>) -> Vec<Strin
             .collect();
 
         let average_embedding = calc_average_embedding(row_embeddings.as_slice());
-        let class_name = match top(&average_embedding, 1).first() {
-            Some(top_class_name) => top_class_name.1.clone(),
+        let class_name = match imagenet::top(&average_embedding, 1).first() {
+            Some(top_class_name) => format!("{} ({})", top_class_name.1, i + 1),
             None => String::new()
         };
 

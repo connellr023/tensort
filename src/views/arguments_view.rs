@@ -10,11 +10,11 @@ impl Display for ArgumentsModel
             "Running tensort with options:\n\
             <target_dir>        : {}\n\
             <class_count>       : {}\n\
-            <should_gen_names>  : {}
+            <no_class_names>    : {}
             ",
             self.target_dir().to_str().unwrap(),
             self.class_count(),
-            self.should_gen_names()
+            self.should_not_gen_names()
         )
     }
 }

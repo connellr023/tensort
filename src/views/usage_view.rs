@@ -14,7 +14,7 @@ impl Display for InvalidUsageError
              Arguments:\n\
              <target_dir>    : Path to the target directory\n\
              <class_count>   : Number of classes\n\
-             -n, --gen-names : Generate class names (optional)\n\
+             -n, --no-names  : Do not generate class names (optional)\n\
              \n\
              Example:\n\
              tensort /path/to/images_dir 5 -n",

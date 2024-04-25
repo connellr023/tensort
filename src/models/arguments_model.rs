@@ -6,14 +6,14 @@ use crate::errors::InvalidUsageError;
 ///     <target_dir> <br />
 ///     <class_count> <br />
 /// Optional: <br />
-///     <should_gen_names> (default = false)
+///     <no_names> (default = false)
 const MIN_ARG_COUNT: usize = 3;
 
 pub struct ArgumentsModel
 {
     target_dir: PathBuf,
     class_count: usize,
-    should_gen_names: bool
+    should_not_gen_names: bool
 }
 
 impl ArgumentsModel
@@ -42,7 +42,7 @@ impl ArgumentsModel
         let gen_names = match args.get(3) {
             Some(flag) => {
                 match flag.as_str() {
-                    "-n" | "--gen-names" => true,
+                    "-n" | "--no-names" => true,
                     _ => false
                 }
             },
@@ -52,7 +52,7 @@ impl ArgumentsModel
         Ok(Self {
             target_dir,
             class_count,
-            should_gen_names: gen_names,
+            should_not_gen_names: gen_names,
         })
     }
 
@@ -66,8 +66,8 @@ impl ArgumentsModel
         self.class_count
     }
 
-    pub fn should_gen_names(&self) -> bool
+    pub fn should_not_gen_names(&self) -> bool
     {
-        self.should_gen_names
+        self.should_not_gen_names
     }
 }

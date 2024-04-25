@@ -23,7 +23,7 @@ struct ClassifiedImagesFormatter
 {
     similarity_table: Table<usize>,
     image_paths: Vec<PathBuf>,
-    class_names: Option<Vec<String>>
+    class_names: Vec<String>
 }
 
 impl ClassifiedImagesFormatter
@@ -31,7 +31,7 @@ impl ClassifiedImagesFormatter
     fn new(
         similarity_table: Table<usize>,
         image_paths: Vec<PathBuf>,
-        class_names: Option<Vec<String>>
+        class_names: Vec<String>
     ) -> Self
     {
         Self {
@@ -46,14 +46,7 @@ impl Display for ClassifiedImagesFormatter
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         for i in 0..self.similarity_table.len() {
-            match &self.class_names {
-                Some(class_names) => {
-                    writeln!(f, "Class {} - ({}):", i + 1, class_names[i])?;
-                },
-                None => {
-                    writeln!(f, "Class {}:", i + 1)?;
-                }
-            }
+            writeln!(f, "{}:", self.class_names[i])?;
     
             for j in 0..self.similarity_table[i].len() {
                 writeln!(f, "\t=> {}", self.image_paths[self.similarity_table[i][j]]
@@ -77,7 +70,7 @@ pub fn format_missed_images(missed_images: Vec<PathBuf>) -> impl Display
 pub fn format_classified_images(
     similarity_table: Table<usize>,
     image_paths: Vec<PathBuf>,
-    class_names: Option<Vec<String>>
+    class_names: Vec<String>
 ) -> impl Display
 {
     ClassifiedImagesFormatter::new(similarity_table, image_paths, class_names)

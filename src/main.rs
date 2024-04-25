@@ -14,6 +14,7 @@ use tch::vision::resnet::resnet34;
 use crate::models::arguments_model::ArgumentsModel;
 use crate::models::cnn_model::CNNModel;
 use crate::views::results_view::*;
+use crate::controllers::io_controller::*;
 use crate::controllers::embeddings_controller::*;
 
 const PRETRAINED_MODEL_PATH: &str = "/home/connell/Programming/model-stuff/resnet34.ot";
@@ -45,14 +46,21 @@ fn run(args: Vec<String>) -> Result<(), Box<dyn Error>>
 	let similarity_table = cluster_embeddings(similarities.as_slice(), embeddings.len(), args.class_count());
 
 	// Generate class names if option is set
-	let class_names = if args.should_gen_names() {
-		println!("Averaging tensors and deriving class names...");
-		Some(gen_class_names(embeddings.as_slice(), &similarity_table))
+	let class_names = if args.should_not_gen_names() {
+		gen_default_class_names(args.class_count())
 	}
-	else { None };
+	else {
+		print!("Averaging tensors and deriving class names...");
+		gen_class_names(embeddings.as_slice(), &similarity_table)
+	};
+
+	// Manipulate file locations
+	println!("Moving files...");
+	update_target_dir(args.target_dir(), image_paths.as_slice(), class_names.as_slice(), &similarity_table)?;
 
 	// Print classification results
-	print!("\n{}", format_classified_images(similarity_table, image_paths, class_names));
+	// Move all the values since this is the end
+	print!("\nResults:\n{}", format_classified_images(similarity_table, image_paths, class_names));
 
 	Ok(())
 }
