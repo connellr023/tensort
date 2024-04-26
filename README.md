@@ -48,7 +48,6 @@ When installing *libtorch*, ensure that the version that supports **CUDA** is us
 
 On Linux, `.bashrc` should contain the following (at least for my setup)
 ```
-export LIBTORCH_USE_PYTORCH=1
 export LIBTORCH_BYPASS_VERSION_CHECK=1
 export LIBTORCH=/path/to/libtorch
 export LD_LIBRARY_PATH=/path/to/libtorch:$LD_LIBRARY_PATH
