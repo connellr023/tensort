@@ -22,7 +22,7 @@ const PRETRAINED_MODEL_PATH: &str = "/home/connell/Programming/model-stuff/resne
 fn run(args: Vec<String>) -> Result<(), Box<dyn Error>>
 {
 	// Read in command line arguments
-	let args = ArgumentsModel::new(args)?;
+	let args = ArgumentsModel::from(args)?;
 
 	// Print selected arguments
 	println!("{}", args);

@@ -5,3 +5,6 @@ edition = "2021"
 
 [dependencies]
 tch = "0.15.0"
+
+[dev-dependencies]
+assertables = "7.0.1"

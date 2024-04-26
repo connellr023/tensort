@@ -58,5 +58,5 @@ export LD_LIBRARY_PATH=/path/to/libtorch:$LD_LIBRARY_PATH
 <br />
 
 <div align="center">
-  Developed by <b>Connell Reffo</b> in <b>2024</b>.
+  Developed and Tested by <b>Connell Reffo</b> in <b>2024</b>.
 </div>
