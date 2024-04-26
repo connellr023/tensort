@@ -35,7 +35,7 @@ The recognized image formats consist of:
 
 5. Generate class names. This part can be opted out with the `-n | --no-names` flags mentioned above. In this part, a tensor averaged along each dimension is generated for each classification and then the classification with the highest probability is selected as the class name.
 
-6. Finally, since everything is has now been computed, moving the files into a directory tree that corresponds to the generated classifications is straightforward.
+6. Finally, since everything has now been computed, moving the files into a directory tree that corresponds to the generated classifications is straightforward.
 
 <br />
 

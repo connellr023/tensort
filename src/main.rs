@@ -17,7 +17,8 @@ use crate::views::results_view::*;
 use crate::controllers::io_controller::*;
 use crate::controllers::embeddings_controller::*;
 
-const PRETRAINED_MODEL_PATH: &str = "/home/connell/Programming/model-stuff/resnet34.ot";
+//const PRETRAINED_MODEL_PATH: &str = "/home/connell/Programming/model-stuff/resnet34.ot";
+const MODEL_WEIGHT_BYTES: &[u8] = include_bytes!("/home/connell/Programming/model-stuff/resnet34.ot");
 
 fn run(args: Vec<String>) -> Result<(), Box<dyn Error>>
 {
@@ -28,7 +29,7 @@ fn run(args: Vec<String>) -> Result<(), Box<dyn Error>>
 	println!("{}", args);
 
 	// Initialize convolutional neural network and print related info
-	let model = CNNModel::new(PRETRAINED_MODEL_PATH, resnet::resnet34)?;
+	let model = CNNModel::new(MODEL_WEIGHT_BYTES, resnet::resnet34)?;
 	println!("{}\n", model);
 
 	// Read the target dir and process each image
@@ -50,7 +51,7 @@ fn run(args: Vec<String>) -> Result<(), Box<dyn Error>>
 		gen_default_class_names(args.class_count())
 	}
 	else {
-		print!("Averaging tensors and deriving class names...");
+		println!("Averaging tensors and deriving class names...");
 		gen_class_names(embeddings.as_slice(), &similarity_table)
 	};
 
