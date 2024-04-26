@@ -29,5 +29,5 @@ ENV LIBTORCH_BYPASS_VERSION_CHECK=1
 COPY src ./src
 COPY Cargo.toml Cargo.lock ./
 
-# Run tests
-RUN cargo test
+# Command on run
+CMD ["cargo", "test"]
