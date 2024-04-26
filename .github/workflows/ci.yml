@@ -15,6 +15,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag tensort-image:$(date +%s)
+      run: docker build -t tensort-image .
     - name: Run tests in Docker container
-      run: docker run tensort-image:$(date +%s)
+      run: docker run tensort-image
