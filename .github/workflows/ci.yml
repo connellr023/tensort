@@ -17,4 +17,4 @@ jobs:
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag tensort-image:$(date +%s)
     - name: Run tests in Docker container
-      run: docker run --rm tensort-image:$(date +%s) cargo test
+      run: docker run tensort-image:$(date +%s)

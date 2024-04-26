@@ -1,11 +1,12 @@
 # $\text{tensort}\bullet\textit{(tensor-sort)}$
 > A **CLI** tool that utilizes a **ResNet** convolutional neural network to recognize content in images and sort them into classes.
 
-![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white)
-![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=for-the-badge&logo=PyTorch&logoColor=white)
-![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
-
-<img src="https://github.com/connellr023/tensort/actions/workflows/ci.yml/badge.svg">
+<div>
+  <img src="https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white" />
+  <img src="https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=for-the-badge&logo=PyTorch&logoColor=white" />
+  <img src="https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white" />
+  <img src="https://github.com/connellr023/tensort/actions/workflows/ci.yml/badge.svg">
+</div>
 
 <br />
 
@@ -24,6 +25,55 @@ tensort /path/to/images_dir 5 -n
 
 The recognized image formats consist of:
 `jpg`, `jpeg`, `png`
+
+<br />
+
+### Example Usage
+The names of the files do describe what the images actually are in this example.
+```
+:~$ ls
+cbum.jpg                jay1.jpg  jordan_barrett.jpg
+cut_off_sleeve_guy.jpg  jay2.jpg  some_bird1.jpeg
+golden_retriever.jpg    jay3.jpg  some_bird2.jpg
+
+:~$ ./path/to/bin/tensort /path/to/images 5
+Running tensort with options:
+<target_dir>        : /path/to/images
+<class_count>       : 5
+<no_class_names>    : false
+            
+Neural network running on device: Cuda(0)
+
+Generating image embeddings...
+Computing similarities and clustering embeddings...
+Averaging tensors and deriving class names...
+Moving files...
+
+Results:
+Windsor tie (1):
+	=> /path/to/images/jordan_barrett.jpg
+
+dumbbell (2):
+	=> /path/to/images/cbum.jpg
+	=> /path/to/images/cut_off_sleeve_guy.jpg
+
+bulbul (3):
+	=> /path/to/images/some_bird2.jpg
+	=> /path/to/images/some_bird1.jpeg
+
+jay (4):
+	=> /path/to/images/jay3.jpg
+	=> /path/to/images/jay2.jpg
+	=> /path/to/images/jay1.jpg
+
+golden retriever (5):
+	=> /path/to/images/golden_retriever.jpg
+
+:~$ ls
+'bulbul (3)'    'golden retriever (5)'  'Windsor tie (1)'
+'dumbbell (2)'  'jay (4)'
+```
+It is worth noting that any classification problems that do occur are a limitation of the model and could be improved with more training and adding more possible output classifications.
 
 <br />
 
