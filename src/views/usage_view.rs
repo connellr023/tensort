@@ -9,7 +9,7 @@ impl Display for InvalidUsageError
             f,
             "Error: {}\n\
             \n\
-            Usage: tensort <target_dir> <class_count> [-n | --gen-names]\n\
+            Usage: tensort <target_dir> <class_count> [-n | --no-names]\n\
              \n\
              Arguments:\n\
              <target_dir>    : Path to the target directory\n\

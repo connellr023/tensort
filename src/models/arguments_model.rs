@@ -77,7 +77,7 @@ impl ArgumentsModel
 mod tests
 {
     use assertables::*;
-    use crate::models::arguments_model::ArgumentsModel;
+    use crate::ArgumentsModel;
 
     #[test]
     fn not_enough_args_returns_error()

@@ -15,15 +15,14 @@ pub struct CNNModel
 
 impl CNNModel
 {
-    pub fn new(model_weight_bytes: &'static [u8], cnn_func: CNNSignature) -> Result<Self, TchError>
+    pub fn new(varstore_bytes: &'static [u8], cnn_func: CNNSignature) -> Result<Self, TchError>
     {
         let device = Device::cuda_if_available();
         let mut varstore = VarStore::new(device);
         let model = cnn_func(&varstore.root(), imagenet::CLASS_COUNT);
 
-        varstore.load_from_stream(Cursor::new(model_weight_bytes))?;
-        //varstore.load(pretrained_path)?;
-        
+        varstore.load_from_stream(Cursor::new(varstore_bytes))?;
+
         Ok(Self {
             device,
             varstore,
@@ -46,5 +45,27 @@ impl CNNModel
             .squeeze();
 
         Ok(embedding)
+    }
+}
+
+#[cfg(test)]
+mod tests
+{
+    use tch::vision::resnet;
+    use crate::CNNModel;
+
+    #[test]
+    fn invalid_byte_stream_returns_error()
+    {
+        let invalid_byte_stream = &[69u8, 23u8];
+        let result = CNNModel::new(invalid_byte_stream, resnet::resnet34);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn valid_byte_stream_constructs_and_getters_work()
+    {
+        todo!();
     }
 }

@@ -1,16 +1,17 @@
-# tensort *(tensor-sort)*
+# $\text{tensort}\bullet\textit{(tensor-sort)}$
 > A **CLI** tool that utilizes a **ResNet** convolutional neural network to recognize content in images and sort them into classes.
 
 ![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=for-the-badge&logo=PyTorch&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 
 <br />
 
 ### Usage
 ```
-Usage: tensort <target_dir> <class_count> [-n |--gen-names]
+Usage: tensort <target_dir> <class_count> [-n | --no-names]
 
-Arguments:
+Arguments:s
 <target_dir>    : Path to the target directory
 <class_count>   : Number of classes
 -n, --no-names  : Do not generate class names (optional)
