@@ -174,7 +174,7 @@ pub fn gen_class_names(embeddings: &[Tensor], table: &Table<usize>) -> Vec<Strin
 
         // Simply fill the rest of the vector since the entire space needs to be used
         if row.len() == 0 {
-            class_names.push(format!("Empty class ({})", i + 1));
+            class_names.push(format!("Class {}", i + 1));
             continue;
         }
 

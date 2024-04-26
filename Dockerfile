@@ -17,6 +17,9 @@ RUN wget --timeout=600 https://download.pytorch.org/libtorch/cu121/libtorch-cxx1
     unzip libtorch-cxx11-abi-shared-with-deps-2.3.0+cu121.zip -d /usr/lib/ && \
     rm libtorch-cxx11-abi-shared-with-deps-2.3.0+cu121.zip
 
+# Download ResNet34 training weights
+RUN wget --timeout=300 https://github.com/LaurentMazare/tch-rs/releases/download/mw/resnet34.ot
+
 # Set environment variables for libtorch
 ENV LIBTORCH /usr/lib/libtorch
 ENV LD_LIBRARY_PATH $LIBTORCH/lib:$LD_LIBRARY_PATH

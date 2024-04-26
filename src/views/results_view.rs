@@ -45,12 +45,20 @@ impl Display for ClassifiedImagesFormatter
         for i in 0..self.similarity_table.len() {
             writeln!(f, "{}:", self.class_names[i])?;
     
-            for j in 0..self.similarity_table[i].len() {
-                writeln!(f, "\t=> {}", self.image_paths[self.similarity_table[i][j]]
-                    .to_str()
-                    .unwrap()
-                )?;
+            let row_image_count = self.similarity_table[i].len();
+
+            if row_image_count == 0 {
+                writeln!(f, "\t=> No images classified")?;
             }
+            else {
+                for j in 0..row_image_count {
+                    writeln!(f, "\t=> {}", self.image_paths[self.similarity_table[i][j]]
+                        .to_str()
+                        .unwrap()
+                    )?;
+                }
+            }
+
     
             writeln!(f)?;
         }
