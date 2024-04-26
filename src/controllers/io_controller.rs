@@ -2,23 +2,47 @@ use std::io;
 use std::fs;
 use std::path::PathBuf;
 use tch::Tensor;
-use crate::models::cnn_model::CNNModel;
+use crate::models::cnn_model::Embeddable;
 use crate::Table;
 
-pub fn extension_is_image(extension: &str) -> bool
-{
+/// Checks if the given file extension is an image extension.
+///
+/// # Arguments
+///
+/// * `extension` - A string slice representing the file extension.
+///
+/// # Returns
+///
+/// Returns `true` if the extension is a valid image extension (jpg, jpeg, or png), otherwise `false`.
+fn extension_is_image(extension: &str) -> bool {
     match extension.to_lowercase().as_str()
     {
-        "jpg" | "jpeg" | "png" | "gif" | "bmp" | "tiff" => true,
+        "jpg" | "jpeg" | "png" => true,
         _ => false
     }
 }
 
-/// For each image in the target `dir` <br />
-/// Will utilize an already initialized convolutional neural network
-/// to generate embeddings for each image in `dir`
-pub fn gen_image_embeddings(dir: &PathBuf, model: &CNNModel) -> io::Result<(Vec<Tensor>, Vec<PathBuf>, Vec<PathBuf>)>
-{
+/// Generates image embeddings for each image in a directory.
+///
+/// This function takes a directory and a model that implements the `Embeddable` trait.
+/// It iterates over each file in the directory. If the file is an image (determined by the `extension_is_image` function),
+/// it generates an embedding using the `gen_embedding` method of the model.
+///
+/// # Arguments
+///
+/// * `dir` - A `PathBuf` that represents the directory to search for images.
+/// * `model` - A reference to an instance of a model that implements the `Embeddable` trait.
+///
+/// # Returns
+///
+/// This function returns a `Result` with a tuple containing three vectors:
+///
+/// * A vector of `Tensor` objects, each representing the embedding of an image.
+/// * A vector of `PathBuf` objects, each representing the path of an image that was successfully processed.
+/// * A vector of `PathBuf` objects, each representing the path of an image that could not be processed.
+///
+/// If the `dir` argument is not a directory, the function returns an `Err` with an `io::Error` of kind `InvalidInput`.
+pub fn gen_image_embeddings<T: Embeddable>(dir: &PathBuf, model: &T) -> io::Result<(Vec<Tensor>, Vec<PathBuf>, Vec<PathBuf>)> {
     let mut embeddings = vec![];
     let mut images_paths = vec![];
     let mut missed_images_paths = vec![];
@@ -47,8 +71,19 @@ pub fn gen_image_embeddings(dir: &PathBuf, model: &CNNModel) -> io::Result<(Vec<
     Ok((embeddings, images_paths, missed_images_paths))
 }
 
-/// Uses the table generated from sorting and the generated class names <br />
-/// Will re-arrange the target `dir` to reflect the sorting results
+/// Uses the table generated from sorting and the generated class names.
+/// Will re-arrange the target `dir` to reflect the sorting results.
+///
+/// # Arguments
+///
+/// * `dir` - A `PathBuf` that represents the target directory to be updated.
+/// * `image_paths` - A slice of `PathBuf` objects representing the paths of the images to be moved.
+/// * `class_names` - A slice of `String` objects representing the class names.
+/// * `table` - A reference to a `Table<usize>` object representing the sorting results.
+///
+/// # Returns
+///
+/// Returns `Ok(())` if the target directory is successfully updated, otherwise returns an `io::Error`.
 pub fn update_target_dir(
     dir: &PathBuf,
     image_paths: &[PathBuf],
@@ -82,4 +117,74 @@ pub fn update_target_dir(
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs::File;
+    use std::io::Write;
+    use tempfile::tempdir;
+
+    struct MockCNNModel;
+
+    impl Embeddable for MockCNNModel {
+        fn gen_embedding(&self, _: &PathBuf) -> Result<Tensor, tch::TchError> {
+            Ok(Tensor::new())
+        }
+    }
+
+    #[test]
+    fn extension_is_image_works() {
+        assert!(extension_is_image("png"));
+        assert!(extension_is_image("PNG"));
+        assert!(extension_is_image("jpg"));
+        assert!(extension_is_image("JPG"));
+        assert!(extension_is_image("jpeg"));
+        assert!(extension_is_image("JPEG"));
+    }
+
+    #[test]
+    fn extension_is_not_image_works() {
+        assert!(!extension_is_image("txt"));
+        assert!(!extension_is_image("BMP"));
+    }
+
+    #[test]
+    fn gen_image_embeddings_with_valid_input_works() {
+        let model = MockCNNModel;
+        let dir = tempdir().unwrap();
+        let img_path = dir.path().join("image.jpg");
+        let non_img_path = dir.path().join("file.txt");
+
+        // Create an image file and a non-image file
+        File::create(&img_path).unwrap();
+        let mut file = File::create(&non_img_path).unwrap();
+        writeln!(file, "Hello, world!").unwrap();
+
+        let (embeddings, images_paths, missed_images_paths) = gen_image_embeddings(&dir.path().to_path_buf(), &model).unwrap();
+
+        // Check that the image file was processed and the non-image file was not
+        assert_eq!(embeddings.len(), 1);
+        assert_eq!(images_paths, vec![img_path]);
+        assert_eq!(missed_images_paths.len(), 0);
+    }
+
+    #[test]
+    fn gen_image_embeddings_with_invalid_input_works() {
+        let model = MockCNNModel;
+        let dir = tempdir().unwrap();
+        let img_path = dir.path().join("image.jpg");
+
+        // Create an image file
+        File::create(&img_path).unwrap();
+
+        // Attempt to process a non-existent directory
+        let result = gen_image_embeddings(&dir.path().join("non_existent"), &model);
+        assert!(result.is_err());
+
+        // Attempt to process a non-directory
+        let result = gen_image_embeddings(&img_path, &model);
+        assert!(result.is_err());
+    }
 }

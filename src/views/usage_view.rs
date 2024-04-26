@@ -1,10 +1,8 @@
 use std::fmt::{Display, Formatter, Result};
 use crate::errors::InvalidUsageError;
 
-impl Display for InvalidUsageError
-{
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result
-    {
+impl Display for InvalidUsageError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "Error: {}\n\

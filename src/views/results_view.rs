@@ -4,8 +4,7 @@ use crate::controllers::embeddings_controller::Table;
 
 struct MissedImagesFormatter(Vec<PathBuf>);
 
-impl Display for MissedImagesFormatter
-{
+impl Display for MissedImagesFormatter {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         writeln!(f, "\nThe following images failed to process:")?;
 
@@ -19,15 +18,13 @@ impl Display for MissedImagesFormatter
         Ok(())
     }
 }
-struct ClassifiedImagesFormatter
-{
+struct ClassifiedImagesFormatter {
     similarity_table: Table<usize>,
     image_paths: Vec<PathBuf>,
     class_names: Vec<String>
 }
 
-impl ClassifiedImagesFormatter
-{
+impl ClassifiedImagesFormatter {
     fn new(
         similarity_table: Table<usize>,
         image_paths: Vec<PathBuf>,

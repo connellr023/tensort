@@ -1,28 +1,39 @@
 use std::path::PathBuf;
 use crate::errors::InvalidUsageError;
 
-/// Minimum number of arguments that should be provided to the CLI <br />
-/// Required: <br />
-///     <target_dir> <br />
-///     <class_count> <br />
-/// Optional: <br />
-///     <no_names> (default = false)
 const MIN_ARG_COUNT: usize = 3;
 
+/// This module defines the command-line interface for the application.
+///
+/// # Arguments
+///
+/// The application requires the following arguments:
+///
+/// - `target_dir`: The directory to be processed.
+/// - `class_count`: The number of classes to be used in the model.
+///
+/// In addition, the application accepts the following optional arguments:
+///
+/// - `no_names`: A flag that, if present, indicates that names should not be used. Defaults to `false`.
+///
+/// # Example
+///
+/// ```
+/// program_name target_dir class_count --no_names
+/// ```
 #[derive(PartialEq, Debug)]
-pub struct ArgumentsModel
-{
+pub struct ArgumentsModel {
     target_dir: PathBuf,
     class_count: usize,
     should_not_gen_names: bool
 }
 
-impl ArgumentsModel
-{
+impl ArgumentsModel {
+    
     /// Factory method for a new arguments structure <br />
     /// Represents the values passed to the CLI in the context of this tool
-    pub fn from(args: Vec<String>) -> Result<Self, InvalidUsageError>
-    {
+    pub fn from(args: Vec<String>) -> Result<Self, InvalidUsageError> {
+
         // Check if enough arguments are provided
         if args.len() < MIN_ARG_COUNT {
             return Err(InvalidUsageError("Not enough arguments provided"));
@@ -57,38 +68,32 @@ impl ArgumentsModel
         })
     }
 
-    pub fn target_dir(&self) -> &PathBuf
-    {
+    pub fn target_dir(&self) -> &PathBuf {
         &self.target_dir
     }
 
-    pub fn class_count(&self) -> usize
-    {
+    pub fn class_count(&self) -> usize {
         self.class_count
     }
 
-    pub fn should_not_gen_names(&self) -> bool
-    {
+    pub fn should_not_gen_names(&self) -> bool {
         self.should_not_gen_names
     }
 }
 
 #[cfg(test)]
-mod tests
-{
+mod tests {
     use assertables::*;
-    use crate::ArgumentsModel;
+    use super::ArgumentsModel;
 
     #[test]
-    fn not_enough_args_returns_error()
-    {
+    fn not_enough_args_returns_error() {
         let result = ArgumentsModel::from(vec![]);
         assert!(result.is_err());
     }
 
     #[test]
-    fn invalid_dir_returns_error()
-    {
+    fn invalid_dir_returns_error() {
         let not_a_dir = std::env::current_dir()
             .unwrap()
             .join("mod.rs")
@@ -109,8 +114,7 @@ mod tests
     }
 
     #[test]
-    fn invalid_class_count_returns_error()
-    {
+    fn invalid_class_count_returns_error() {
         let valid_dir = std::env::current_dir()
             .unwrap()
             .to_str()
@@ -123,8 +127,7 @@ mod tests
     }
 
     #[test]
-    fn valid_input_no_class_names_constructs()
-    {
+    fn valid_input_no_class_names_constructs() {
         let valid_dir_path = std::env::current_dir().unwrap();
         let valid_dir = valid_dir_path
             .to_str()
@@ -142,8 +145,7 @@ mod tests
     }
 
     #[test]
-    fn valid_input_with_class_names_constructs()
-    {
+    fn valid_input_with_class_names_constructs() {
         let valid_dir_path = std::env::current_dir().unwrap();
         let valid_dir = valid_dir_path
             .to_str()
@@ -161,8 +163,7 @@ mod tests
     }
 
     #[test]
-    fn getters_work()
-    {
+    fn getters_work() {
         let valid_dir_path = std::env::current_dir().unwrap();
         let valid_dir = valid_dir_path
             .to_str()

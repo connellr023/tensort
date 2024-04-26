@@ -3,8 +3,7 @@ use crate::models::arguments_model::ArgumentsModel;
 
 impl Display for ArgumentsModel
 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result
-    {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "Running tensort with options:\n\

@@ -3,8 +3,8 @@ use tch::Tensor;
 
 pub type Table<T> = Vec<Vec<T>>;
 
-pub fn cosine_similarity(t1: &Tensor, t2: &Tensor) -> f64
-{
+/// Calculates the cosine similarity between two tensors.
+pub fn cosine_similarity(t1: &Tensor, t2: &Tensor) -> f64 {
     let dot_product = t1.dot(t2);
     let norm1 = t1.norm();
     let norm2 = t2.norm();
@@ -12,8 +12,8 @@ pub fn cosine_similarity(t1: &Tensor, t2: &Tensor) -> f64
     dot_product.double_value(&[]) / (norm1.double_value(&[]) * norm2.double_value(&[]))
 }
 
-pub fn calc_pairwise_cosine_similarities(embeddings: &[Tensor]) -> Vec<f64>
-{
+/// Calculates the pairwise cosine similarities between a slice of embeddings.
+pub fn calc_pairwise_cosine_similarities(embeddings: &[Tensor]) -> Vec<f64> {
     let embedding_count = embeddings.len();
     let mut similarities = Vec::with_capacity(embedding_count * embedding_count);
 
@@ -27,14 +27,12 @@ pub fn calc_pairwise_cosine_similarities(embeddings: &[Tensor]) -> Vec<f64>
     similarities
 }
 
-/// Formula for calculating the similarity threshold
-/// for comparing image embeddings
-pub fn calc_similarity_threshold(similarities: &[f64], class_count: usize) -> f64
-{
+/// Calculates the similarity threshold for comparing image embeddings.
+pub fn calc_similarity_threshold(similarities: &[f64], class_count: usize) -> f64 {
     let similarities_per_class = similarities.len() / class_count;
     let mut max_within_clusters = Vec::with_capacity(class_count);
 
-    // Calculate maxmimum similarity within each cluster
+    // Calculate maximum similarity within each cluster
     for i in 0..class_count {
         let start = i * similarities_per_class;
         let end = start + similarities_per_class;
@@ -64,17 +62,26 @@ pub fn calc_similarity_threshold(similarities: &[f64], class_count: usize) -> f6
     (((sum / class_count as f64) + min_between_clusters)) / 2.0
 }
 
-/// The main sorting algorithm <br />
-/// Given a slice of pre-computed pairwise similarities,
-/// returns a table (2D vector) of embedding indicies that represent their "clusters"
-pub fn cluster_embeddings(similarities: &[f64], embedding_count: usize, class_count: usize) -> Table<usize>
-{
-    let threshold = calc_similarity_threshold(similarities, class_count);
+/// Clusters embeddings based on their similarities.
+///
+/// This function takes a slice of similarities between embeddings, the total number of embeddings, and the desired number of classes (clusters). It uses these inputs to perform a clustering operation, grouping similar embeddings together.
+///
+/// # Arguments
+///
+/// * `similarities` - A slice of `f64` values representing the similarities between different embeddings. The length of this slice should be equal to the square of `embedding_count`.
+/// * `similarity_threshold` - The threshold for considering two embeddings as similar. This value is calculated based on the similarities between embeddings and the desired number of classes.
+/// * `embedding_count` - The total number of embeddings that are being clustered.
+/// * `class_count` - The desired number of clusters.
+///
+/// # Returns
+///
+/// This function returns a `Table<usize>` where each row represents an embedding and each column represents a class. The value at a specific row and column indicates the membership of the corresponding embedding in the corresponding class.
+pub fn cluster_embeddings(similarities: &[f64], similarity_threshold: f64, embedding_count: usize, class_count: usize) -> Table<usize> {
     let mut clusters: Table<usize> = vec![vec![]; class_count];
     let mut last_class_index = 0usize;
     let mut last_embedding_index = 0usize;
 
-    // Main loop for assigning initial embedding indicies to each class in the table
+    // Main loop for assigning initial embedding indices to each class in the table
     for embedding_index in 0..embedding_count {
         last_embedding_index = embedding_index;
 
@@ -90,7 +97,7 @@ pub fn cluster_embeddings(similarities: &[f64], embedding_count: usize, class_co
                 // Calculate row major order index offset
                 let similarity_index = first_embedding_index + (embedding_index * embedding_count);
 
-                if similarity_index < similarities.len() && similarities[similarity_index] < threshold {
+                if similarity_index < similarities.len() && similarities[similarity_index] < similarity_threshold {
                     continue;
                 }
             }
@@ -102,7 +109,7 @@ pub fn cluster_embeddings(similarities: &[f64], embedding_count: usize, class_co
         }
     }
 
-    // Second loop for assigning overflowed embedding indicies as they best fit
+    // Second loop for assigning overflowed embedding indices as they best fit
     for embedding_index in last_embedding_index..embedding_count {
 
         // Track best as a tuple of its current class index and current best cosine similarity
@@ -128,9 +135,8 @@ pub fn cluster_embeddings(similarities: &[f64], embedding_count: usize, class_co
     clusters
 }
 
-/// Takes a slice of tensors and returns a tensor which is an average of each dimension
-pub fn calc_average_embedding(embeddings: &[&Tensor]) -> Tensor
-{
+/// Takes a slice of tensors and returns a tensor which is an average of each dimension.
+pub fn calc_average_embedding(embeddings: &[&Tensor]) -> Tensor {
     let mut tensor_sum = Tensor::zeros_like(&embeddings[0]);
 
     embeddings
@@ -145,10 +151,9 @@ pub fn calc_average_embedding(embeddings: &[&Tensor]) -> Tensor
     tensor_sum / embeddings.len() as f64
 }
 
-/// Simply generates basic class names as a number representing order <br />
-/// "Class 1, Class 2, ..., Class {n}"
-pub fn gen_default_class_names(class_count: usize) -> Vec<String>
-{
+/// Generates basic class names as a number representing order.
+/// Example: "Class 1, Class 2, ..., Class {n}".
+pub fn gen_default_class_names(class_count: usize) -> Vec<String> {
     let mut class_names = Vec::with_capacity(class_count);
 
     for i in 0..class_count {
@@ -159,9 +164,8 @@ pub fn gen_default_class_names(class_count: usize) -> Vec<String>
 }
 
 /// Given a slice of embeddings and the sorted table,
-/// generate the most likely name for each classification (by averaging tensors)
-pub fn gen_class_names(embeddings: &[Tensor], table: &Table<usize>) -> Vec<String>
-{
+/// generates the most likely name for each classification (by averaging tensors).
+pub fn gen_class_names(embeddings: &[Tensor], table: &Table<usize>) -> Vec<String> {
     let class_count = table.len();
     let mut class_names = Vec::with_capacity(class_count);
 
@@ -189,4 +193,113 @@ pub fn gen_class_names(embeddings: &[Tensor], table: &Table<usize>) -> Vec<Strin
     }
 
     class_names
+}
+
+#[cfg(test)]
+mod tests {
+    use assertables::*;
+    use super::*;
+
+    #[test]
+    fn cosine_similarity_with_same_tensors_works() {
+        let t1 = Tensor::from_slice(&[4.0, 5.0, 6.0]);
+        let t2 = Tensor::from_slice(&[4.0, 5.0, 6.0]);
+        let similarity = cosine_similarity(&t1, &t2);
+
+        assert_in_delta!(similarity, 1.0, 1e-6);
+    }
+
+    #[test]
+    fn cosine_similarity_with_opposing_tensors_works() {
+        let t1 = Tensor::from_slice(&[4.0, 5.0, 6.0]);
+        let t2 = Tensor::from_slice(&[-4.0, -5.0, -6.0]);
+        let similarity = cosine_similarity(&t1, &t2);
+
+        assert_in_delta!(similarity, -1.0, 1e-6);
+    }
+
+    #[test]
+    fn cosine_similarity_with_orthogonal_tensors_works() {
+        let t1 = Tensor::from_slice(&[1.0, 0.0, 0.0]);
+        let t2 = Tensor::from_slice(&[0.0, 1.0, 0.0]);
+        let similarity = cosine_similarity(&t1, &t2);
+
+        assert_in_delta!(similarity, 0.0, 1e-6);
+    }
+
+    #[test]
+    fn calc_pairwise_cosine_similarities_works() {
+        let t1 = Tensor::from_slice(&[4.0, 5.0, 6.0]);
+        let t2 = Tensor::from_slice(&[-4.0, -5.0, -6.0]);
+        let embeddings = vec![t1, t2];
+        let similarities = calc_pairwise_cosine_similarities(embeddings.as_slice());
+
+        assert_eq!(similarities.len(), 4);
+
+        assert_in_delta!(similarities[0], 1.0, 1e-6);
+        assert_in_delta!(similarities[1], -1.0, 1e-6);
+        assert_in_delta!(similarities[2], -1.0, 1e-6);
+        assert_in_delta!(similarities[3], 1.0, 1e-6);
+    }
+
+    #[test]
+    fn calc_similarity_threshold_within_range() {
+        let similarities = vec![0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1];
+        let class_count = 3;
+        let threshold = calc_similarity_threshold(similarities.as_slice(), class_count);
+    
+        assert_le!(threshold, 1.0);
+        assert_ge!(threshold, -1.0);
+    }
+
+    #[test]
+    fn cluster_embeddings_works() {
+        let similarities = vec![
+            0.9, 0.8, 0.7,
+            0.8, 0.9, 0.8,
+            0.7, 0.8, 0.9
+        ];
+
+        let similarity_threshold = 0.9;
+        let embedding_count = 3;
+        let class_count = 2;
+        let table = cluster_embeddings(similarities.as_slice(), similarity_threshold, embedding_count, class_count);
+
+        assert_eq!(table.len(), class_count);
+        assert_eq!(table[0], vec![0]);
+        assert_eq!(table[1], vec![1, 2]);
+    }
+
+    #[test]
+    fn gen_default_class_names_works() {
+        let class_count = 5;
+        let class_names = gen_default_class_names(class_count);
+
+        assert_eq!(class_names.len(), class_count);
+        assert_eq!(class_names[0], "Class 1");
+        assert_eq!(class_names[1], "Class 2");
+        assert_eq!(class_names[2], "Class 3");
+        assert_eq!(class_names[3], "Class 4");
+        assert_eq!(class_names[4], "Class 5");
+    }
+
+    #[test]
+    fn gen_class_names_works() {
+        let mut slice1 = [0.0; 1000];
+        let mut slice2 = [0.0; 1000];
+
+        slice1[0] = 1.0;
+        slice2[1] = 1.0;
+
+        let t1 = Tensor::from_slice(&slice1);
+        let t2 = Tensor::from_slice(&slice2);
+        let embeddings = vec![t1, t2];
+        let table = vec![vec![0], vec![1]];
+        let class_names = gen_class_names(embeddings.as_slice(), &table);
+
+        assert_eq!(class_names.len(), 2);
+
+        assert_contains!(class_names[0], "tench");
+        assert_contains!(class_names[1], "goldfish");
+    }
 }

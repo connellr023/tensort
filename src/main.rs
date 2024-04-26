@@ -8,9 +8,9 @@ mod views;
 mod controllers;
 mod errors;
 
-use std::error::Error;
 use std::env::args;
 use tch::vision::resnet;
+use anyhow::Result;
 use crate::models::arguments_model::ArgumentsModel;
 use crate::models::cnn_model::CNNModel;
 use crate::views::results_view::*;
@@ -19,8 +19,8 @@ use crate::controllers::embeddings_controller::*;
 
 const VARSTORE_BYTES: &[u8] = include_bytes!("../resnet34.ot");
 
-fn run(args: Vec<String>) -> Result<(), Box<dyn Error>>
-{
+fn run(args: Vec<String>) -> Result<()> {
+
 	// Read in command line arguments
 	let args = ArgumentsModel::from(args)?;
 
@@ -43,7 +43,8 @@ fn run(args: Vec<String>) -> Result<(), Box<dyn Error>>
 	// Group embeddings together
 	println!("Computing similarities and clustering embeddings...");
 	let similarities = calc_pairwise_cosine_similarities(embeddings.as_slice());
-	let similarity_table = cluster_embeddings(similarities.as_slice(), embeddings.len(), args.class_count());
+	let similarity_threshold = calc_similarity_threshold(&similarities, args.class_count());
+	let similarity_table = cluster_embeddings(similarities.as_slice(), similarity_threshold, embeddings.len(), args.class_count());
 
 	// Generate class names if option is set
 	let class_names = if args.should_not_gen_names() {
@@ -65,8 +66,7 @@ fn run(args: Vec<String>) -> Result<(), Box<dyn Error>>
 	Ok(())
 }
 
-fn main()
-{
+fn main() {
 	let args = args().collect();
 
 	if let Err(err) = run(args) {
